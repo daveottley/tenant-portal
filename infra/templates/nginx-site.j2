@@ -1,0 +1,30 @@
+{% if site.type == 'static' %}
+server {
+    listen 80;
+    server_name {{ site.server_name }};
+
+    root {{ site.root }};
+    index index.html;
+
+    access_log /var/log/nginx/{{ site.server_name }}.access.log;
+    error_log /var/log/nginx/{{ site.server_name }}.error.log;
+
+    location / {
+    	try_files $uri $uri/ =404;
+    }
+}
+{% elif site.type == 'proxy' %}
+server {
+    listen 80;
+    server_name {{ site.server_name }};
+
+    access_log /var/log/nginx/{{ site.server_name }}.access.log;
+    error_log /var/log/nginx/{{ site.server_name }}.error.log;
+
+    location / {
+	proxy_pass {{ site.proxy_pass }};
+	proxy_set_header Host $host;
+	proxy_set_header X-Real-IP $remote_addr;
+    }
+}
+{% endif %}

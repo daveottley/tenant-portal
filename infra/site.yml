@@ -1,0 +1,264 @@
+---
+- hosts: portal
+  become: true
+  
+  vars:
+    # -------------- virtual hosts ---------------
+    sites:
+      - server_name: ottleygroup.com
+        root: /srv/www/ottleygroup          # static marketing site
+        type: static
+
+      - server_name: portal.ottleygroup.com
+        proxy_pass: http://127.0.0.1:3000   # tenant portal
+        type: proxy
+
+    # all public-key files that site in ./keys next to this playbook
+    ssh_keys: "{{ lookup('fileglob', 
+                         playbook_dir + '/keys/*.pub',
+                         wantlist=True) }}"
+
+    # nginx.org mainline repo for Ubuntu 24.04
+    nginx_repo: "deb [arch={{ ansible_architecture }}] http://nginx.org/packages/ubuntu {{ ansible_distribution_release }} nginx"
+
+
+
+  pre_tasks:
+    - name: Disable apt-daily timers
+      become: yes
+      systemd:
+        name: "{{ item }}"
+        state: stopped
+        masked: yes
+      loop:
+        - apt-daily.service
+        - apt-daily.timer
+        - apt-daily-upgrade.service
+        - apt-daily-upgrade.timer
+
+    - name: Remove any stale apt lock files
+      become: yes
+      file:
+        path: "{{ item }}"
+        state: absent
+      loop:
+        - /var/lib/apt/lists/lock
+        - /var/lib/dpkg/lock
+
+    - name: Wait for no apt or dpkg processes
+      become: yes
+      shell: pgrep -x apt-get || pgrep -x dpkg
+      register: proc_check
+      changed_when: false
+      failed_when: false
+      retries: 60
+      delay: 2
+      until: proc_check.rc != 0
+
+
+
+  tasks:
+    # ---------- users & keys ----------
+    - name: Ensure sudo user exists
+      user:
+        name: daveottley
+        groups: sudo
+        append: true
+        shell: /bin/bash
+
+    - name: Give administrator password-less sudo
+      copy:
+        dest: /etc/sudoers.d/90-daveottley
+        content: "daveottley ALL=(ALL) NOPASSWD:ALL\n"
+        mode: '0440'
+
+    - name: Install all authorized_keys
+      authorized_key:
+        user: daveottley
+        key: "{{ lookup('file', item) }}"
+      loop: "{{ ssh_keys }}"
+   
+    # ---------- SSH daemon hardening --------
+    - name: Harden sshd_config
+      lineinfile:
+        path: /etc/ssh/sshd_config
+        regexp: "{{ item.regexp }}"
+        line: "{{ item.line }}"
+        state: present
+        backrefs: yes
+      loop:
+        - { regexp: '^#?PermitRootLogin', line: 'PermitRootLogin no' }
+        - { regexp: '^#?PasswordAuthentication', line: 'PasswordAuthentication no' }
+        - { regexp: '^#?PubkeyAuthentication', line: 'PubkeyAuthentication yes' }
+      notify: restart ssh
+
+    # ---------- NGINX mainline repo ---------
+    - name: Add NGINX signing key
+      apt_key:
+        url: https://nginx.org/keys/nginx_signing.key
+        state: present
+
+    - name: Add NGINX official repository
+      apt_repository:
+        repo: "{{ nginx_repo }}"
+        filename: nginx
+        state: present
+
+    - name: Pin NGINX packages to nginx.org
+      copy:
+        dest: /etc/apt/preferences.d/99nginx
+        content: |
+          Package: nginx*
+          Pin: origin nginx.org
+          Pin-Priority: 900
+    
+    # ------------- base packages ------------
+    - name: Install baseline packages
+      apt:
+        name:
+          - nginx
+          - unattended-upgrades
+          - fail2ban
+          - ufw
+        state: latest
+        update_cache: yes
+      notify: restart nginx
+
+    # ------------- Ghostty terminfo -----------
+    - name: copy Ghostty terminfo source
+      copy:
+        src: files/xterm-ghostty.terminfo
+        dest: /tmp/xterm-ghostty.terminfo
+        mode: '0644'
+
+    - name: Compile Ghostty terminfo
+      command: tic -x /tmp/xterm-ghostty.terminfo
+      args:
+        creates: /usr/share/terminfo/x/xterm-ghostty
+      notify: remove ghostty src
+
+    # ------ v-host directories & configs ---------
+    - name: Create web-root directories
+      file:
+        path: "{{ site.root }}"
+        state: directory
+        owner: www-data
+        group: www-data
+        mode: '0755'
+      loop: "{{ sites }}"
+      loop_control:
+        loop_var: site
+      when: site.type == 'static'
+
+    - name: Deploy site server-blocks
+      template:
+        src: nginx-site.j2
+        dest: "/etc/nginx/sites-available/{{ site.server_name }}.conf"
+        owner: root
+        group: root
+        mode: '0644'
+      loop: "{{ sites }}"
+      loop_control:
+        loop_var: site
+      notify: reload_nginx_checked
+
+    - name: Enable site configs
+      file:
+        src: "/etc/nginx/sites-available/{{ site.server_name }}.conf"
+        dest: "/etc/nginx/sites-enabled/{{ site.server_name }}.conf"
+        state: link
+        force: yes
+      loop: "{{ sites }}"
+      loop_control:
+        loop_var: site
+      notify: reload_nginx_checked
+
+    # ------------ systemd auto-restart for NGINX ---------
+    - name: Ensure directory for systemd overrides exists
+      file:
+        path: /etc/systemd/system/nginx.service.d
+        state: directory
+        mode: '0755'
+    
+    - name: Add restart-on-failure override
+      copy:
+        dest: /etc/systemd/system/nginx.service.d/override.conf
+        content: |
+          [Service]
+          Restart=on-failure
+          RestartSec=3s
+      notify:
+        - daemon reload
+        - restart nginx
+
+    # -------- UFW rules ---------
+    - name: Set default incoming policy to DENY
+      ufw:
+        state: enabled          # enables UFW if it wasn't already
+        direction: incoming
+        policy: deny
+
+    - name: Set default outgoing policy to ALLOW
+      ufw:
+        direction: outgoing
+        policy: allow
+
+    - name: Allow essential ports
+      ufw:
+        rule: allow
+        port: "{{ item }}"
+      loop:
+        - '22'
+        - '80'
+        - '443'
+
+    # ---------- unattended-upgrades (non-interactive) ---------
+    - name: Ensure unattended-upgrades is active
+      copy:
+        dest: /etc/apt/apt.conf.d/20auto-upgrades
+        content: |
+          APT::Periodic::Update-Package-Lists "1";
+          APT::Periodic::Unattended-Upgrade "1";
+
+
+    # ---------- Deploy site content -------------
+    - name: Deploy marketing site content
+      synchronize:
+        src: ../site/
+        dest: /srv/www/ottleygroup/
+        delete: yes
+
+
+  handlers:
+
+    - name: remove ghostty src
+      file:
+        path: /tmp/xterm-ghostty.terminfo
+        state: absent
+
+    # test config first, then reload nginx
+    - name: check nginx config
+      command: nginx -t
+      changed_when: false           # don't mark "changed" if syntax is OK
+      listen: reload_nginx_checked  #alias
+
+    - name: reload nginx
+      systemd:
+        name: nginx
+        state: reloaded
+      listen: reload_nginx_checked  # same alias
+
+    - name: daemon reload
+      systemd:
+        daemon_reload: yes
+
+    - name: restart nginx
+      systemd:
+        name: nginx
+        state: restarted
+        enabled: yes
+
+    - name: restart ssh
+      systemd:
+        name: ssh
+        state: restarted
