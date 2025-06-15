@@ -157,7 +157,7 @@ done
 # echo ">>> Running Ansible playbook ..."
 # # define a host called 'portal' 
 # run ansible-playbook "$PLAYBOOK" \
-#   -i ../infra/inventory.ini \
+#   -i ../inventory.ini \
 #   -u "$SSH_USER" \
 #   --ssh-extra-args "-o StrictHostKeyChecking=no"
 
