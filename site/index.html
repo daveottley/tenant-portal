@@ -1,3 +1,180 @@
-(http) ottleygroup.com is WORKING
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>CenTex Value Add One, LLC – Killeen, TX Apartments</title>
+  <style>
+    :root{
+      --primary:#0059b3;
+      --hero:#79aef2;
+      --accent:#ffb703;
+      --gray:#f5f5f5;
+    }
+    body{margin:0;font-family:system-ui,Arial,sans-serif;line-height:1.6;background:#fff;color:#222;}
+    header{background:var(--primary);color:#fff;padding:1rem 0;}
+    header .top{display:flex;justify-content:space-between;align-items:center;max-width:1000px;margin:auto;padding:0 1rem;}
+    nav{display:flex;gap:1rem;align-items:center;}
+    nav a{color:#fff;text-decoration:none;font-weight:500;}
+    .login-btn{background:var(--accent);color:#000!important;padding:0.4rem 0.8rem;border-radius:4px;font-weight:600;}
 
-- Automatically
+    /* HERO */
+    .hero{position:relative;background:var(--hero);min-height:30vh;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;color:#fff;text-align:center;padding:1.2rem 2rem 2rem;}
+    .hero h1{font-size:2.4rem;margin:0;max-width:600px;}
+    .tagline{margin-top:0.4rem;font-size:1.6rem;font-weight:500;}
+    .hero p{margin-top:0.6rem;max-width:600px;font-size:1rem;}
+    .hero-art{position:absolute;bottom:0;left:0;width:100%;height:auto;pointer-events:none;opacity:0.35;}
+
+    /* SECTIONS */
+    .section{padding:2rem 1rem;max-width:1000px;margin:auto;}
+    .section h2{color:var(--primary);margin-bottom:0.75rem;font-size:1.8rem;}
+
+    /* PROPERTY CARDS */
+    .grid{display:grid;grid-template-columns:1fr;gap:1.2rem;}
+    .card{background:var(--gray);border-radius:8px;overflow:hidden;display:flex;flex-direction:row;align-items:stretch;}
+    .card img{width:40%;object-fit:cover;}
+    .card .content{padding:1rem;display:flex;flex-direction:column;justify-content:center;}
+    .badge{background:var(--accent);color:#000;padding:0.25rem 0.5rem;font-size:0.8rem;border-radius:4px;margin-top:0.5rem;display:inline-block;}
+
+    /* COMMUNICATION */
+    .contact-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:1rem;}
+    .contact-box{background:var(--primary);color:#fff;padding:1.3rem;border-radius:8px;text-align:center;}
+    .contact-box a{color:#fff;text-decoration:underline;}
+    .portal-link{font-size:1.3rem;font-weight:700;}
+
+    footer{background:#111;color:#ccc;text-align:center;padding:1rem;font-size:0.9rem;}
+
+    @media(max-width:600px){
+      .hero{min-height:40vh;padding-top:2rem;}
+      .hero h1{font-size:2rem;}
+      .tagline{font-size:1.4rem;}
+      .section{padding:1.5rem 1rem;}
+      .section h2{font-size:1.6rem;}
+      .card{flex-direction:column;}
+      .card img{width:100%;height:160px;}
+      .portal-link{font-size:1.2rem;}
+    }
+  </style>
+</head>
+<body>
+<header>
+  <div class="top">
+    <strong>CenTex Value Add One, LLC</strong>
+    <nav>
+      <a href="#properties">Properties</a>
+      <a href="#lease">Lease Terms</a>
+      <a href="#communication">Contact</a>
+      <a href="https://portal.ottleygroup.com" class="login-btn">Tenant Login</a>
+    </nav>
+  </div>
+</header>
+
+<!-- HERO SECTION -->
+<section class="hero">
+  <h1>Killeen Apartments</h1>
+  <h2 class="tagline">Managed for <span style="text-decoration:underline;">real</span> People</h2>
+  <p>Our mission is simple: provide clean, well‑maintained homes with responsive, transparent management so every resident can live confidently and focus on what matters most.</p>
+  <svg class="hero-art" viewBox="0 0 1200 160" preserveAspectRatio="xMidYMax slice">
+    <!-- clouds -->
+    <g fill="#ffffff">
+      <circle cx="150" cy="60" r="30"/>
+      <circle cx="190" cy="60" r="40"/>
+      <circle cx="230" cy="60" r="30"/>
+      <circle cx="900" cy="50" r="25"/>
+      <circle cx="930" cy="55" r="35"/>
+      <circle cx="970" cy="50" r="25"/>
+    </g>
+    <!-- ground line -->
+    <rect y="120" width="1200" height="40" fill="#8b5a2b" opacity="0.9"/>
+    <!-- duplex -->
+    <g transform="translate(430,80)">
+      <polygon points="0,20 30,0 60,20" fill="#ffffff"/>
+      <rect width="60" height="40" y="20" fill="#ffb703"/>
+      <rect x="8" y="35" width="15" height="25" fill="#ffffff"/>
+      <rect x="37" y="35" width="15" height="25" fill="#ffffff"/>
+    </g>
+    <!-- main house -->
+    <g transform="translate(550,70)">
+      <polygon points="0,30 50,0 100,30" fill="#ffffff"/>
+      <rect x="15" y="30" width="70" height="50" fill="#ffb703"/>
+      <rect x="45" y="50" width="20" height="30" fill="#ffffff"/>
+    </g>
+    <!-- fourplex -->
+    <g transform="translate(680,60)">
+      <polygon points="0,30 40,0 80,30" fill="#ffffff"/>
+      <rect y="30" width="80" height="60" fill="#ffb703"/>
+      <rect x="10" y="40" width="15" height="15" fill="#ffffff"/>
+      <rect x="10" y="65" width="15" height="15" fill="#ffffff"/>
+      <rect x="55" y="40" width="15" height="15" fill="#ffffff"/>
+      <rect x="55" y="65" width="15" height="15" fill="#ffffff"/>
+    </g>
+  </svg>
+</section>
+
+<!-- PROPERTIES SECTION -->
+<section id="properties" class="section">
+  <h2>Our Properties</h2>
+  <div class="grid">
+    <article class="card">
+      <img src="assets/1207-1213-n-12th-st.jpg" alt="1207–1213 N 12th Street exterior" />
+      <div class="content">
+        <h3>N 12th Street Homes</h3>
+        <p>4 units · 1 BR layouts · Single‑family + duplex · 1207‑1213 N 12th St</p>
+        <span class="badge">See Details</span>
+      </div>
+    </article>
+    <article class="card">
+      <img src="assets/1407-bundrant.webp" alt="1407 Bundrant Drive apartments exterior" />
+      <div class="content">
+        <h3>Bundrant Apartments</h3>
+        <p>8 units · 2 BR layouts · 1407 Bundrant Dr</p>
+        <span class="badge">See Details</span>
+      </div>
+    </article>
+    <article class="card">
+      <img src="assets/1809-1811-nathan.jpg" alt="1809–1811 Nathan Drive apartments exterior" />
+      <div class="content">
+        <h3>Nathan Drive Apartments</h3>
+        <p>10 units · 1 &amp; 2 BR · Central air · 1809‑1811 Nathan Dr</p>
+        <span class="badge">See Details</span>
+      </div>
+    </article>
+  </div>
+  <p style="margin-top:0.5rem;font-size:0.9rem;">Click a card for building &amp; unit photos and current availability.</p>
+</section>
+
+<!-- LEASE TERMS SECTION -->
+<section id="lease" class="section lease">
+  <h2>Lease Terms &amp; Fees</h2>
+  <ul>
+    <li><strong>12‑month lease</strong> standard. Month‑to‑month available at +10 % rent.</li>
+    <li>Rent due on the 1<sup>st</sup>; <strong>3‑day</strong> grace period.</li>
+    <li>Late fee: <strong>10%</strong> on day 4, plus <strong>$15/day</strong> thereafter until paid.</li>
+    <li>Secure online payments via ACH or card; balances visible in the tenant portal in real time.</li>
+  </ul>
+</section>
+
+<!-- COMMUNICATION SECTION -->
+<section id="communication" class="section">
+  <h2>Always‑Open Communication</h2>
+  <div class="contact-grid">
+    <div class="contact-box">
+      <h3>Tenant Portal</h3>
+      <p><a class="portal-link" href="https://portal.ottleygroup.com">Login &amp; Pay Rent</a></p>
+    </div>
+    <div class="contact-box">
+      <h3>Call/Text Us</h3>
+      <p><a href="tel:+12544472950">(254) 447‑2950</a></p>
+    </div>
+    <div class="contact-box">
+      <h3>Email Us</h3>
+      <p><a href="mailto:manager@centexvalueadd.com">manager@centexvalueadd.com</a></p>
+    </div>
+  </div>
+</section>
+
+<footer>
+  © 2025 CenTex Value Add One, LLC – Killeen, TX
+</footer>
+</body>
+</html>

@@ -28,7 +28,9 @@ IMAGE="ubuntu-24-04-x64"
 SSH_USER="daveottley"
 PUBKEY_FILE="$HOME/.ssh/id_ed25519.pub"
 
-PLAYBOOK="../site.yml"
+INFRA_HOME="$HOME/projects/tenant-portal/infra"
+PLAYBOOK="$INFRA_HOME/site.yml"
+INVENTORY="$INFRA_HOME/inventory.ini"
 
 FIREWALL_ID="dc582fab-0943-4c6a-8b08-293937e1e7aa"
 ATTACH_FIREWALL=1			# set to 0 to skip
@@ -154,11 +156,11 @@ until run ssh \
   sleep 5
 done
 
-# echo ">>> Running Ansible playbook ..."
-# # define a host called 'portal' 
-# run ansible-playbook "$PLAYBOOK" \
-#   -i ../inventory.ini \
-#   -u "$SSH_USER" \
-#   --ssh-extra-args "-o StrictHostKeyChecking=no"
+echo ">>> Running Ansible playbook ..."
+# define a host called 'portal' 
+run ansible-playbook "$PLAYBOOK" \
+  -i "$INVENTORY" \
+  -u "$SSH_USER" \
+  --ssh-extra-args "-o StrictHostKeyChecking=no"
 
 echo ">>> Success! ssh $SSH_USER@$IP"

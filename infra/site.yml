@@ -20,8 +20,10 @@
 
     # nginx.org mainline repo for Ubuntu 24.04
     nginx_repo: "deb [arch={{ ansible_architecture }}] http://nginx.org/packages/ubuntu {{ ansible_distribution_release }} nginx"
-
-
+    nginx_conf_dir: /etc/nginx
+    nginx_site_avail: "{{ nginx_conf_dir }}/sites-available"
+    nginx_site_enabled: "{{ nginx_conf_dir }}/sites-enabled"
+    wildcard_conf: ottley-wildcard.conf
 
   pre_tasks:
     - name: Disable apt-daily timers
@@ -112,6 +114,14 @@
           Pin: origin nginx.org
           Pin-Priority: 900
     
+    # ---------- Full cache upgrade  ----------
+    - name: Update apt cache and perform full upgrade
+      become: yes
+      apt: 
+        update_cache: yes
+        upgrade: full
+        cache_valid_time: 3600
+    
     # ------------- base packages ------------
     - name: Install baseline packages
       apt:
@@ -120,6 +130,7 @@
           - unattended-upgrades
           - fail2ban
           - ufw
+          - neovim
         state: latest
         update_cache: yes
       notify: restart nginx
@@ -138,6 +149,31 @@
       notify: remove ghostty src
 
     # ------ v-host directories & configs ---------
+    - name: Ensure wildcard redirect server-block is present
+      become: yes
+      copy:
+        dest: "{{ nginx_site_avail }}/{{ wildcard_conf }}"
+        owner: root
+        group: root
+        mode: '0644'
+        content: |
+          server {
+            # one-level wildcard catches foo.ottleygroup.com, bar.ottleygroup.com, ...
+            server_name *.ottleygroup.com;
+
+            # Permanent redirect (HTTP for now)
+            return 301 http://ottleygroup.com$request_uri;
+          }
+      notify: reload nginx
+
+    - name: Enable wildcard redirect (symlink into sites-enabled)
+      become: yes
+      file:
+        src: "{{ nginx_site_avail }}/{{ wildcard_conf }}"
+        dest: "{{ nginx_site_enabled }}/{{ wildcard_conf }}"
+        state: link
+      notify: reload nginx
+
     - name: Create web-root directories
       file:
         path: "{{ site.root }}"
